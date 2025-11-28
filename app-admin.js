@@ -3,7 +3,7 @@
 // ================================
 
 // ⚠️ 본인의 Worker URL로 교체하세요
-const WORKER_URL = "https://lototo-454.pages.dev";
+const WORKER_URL = "https://loto09090909.workers.dev";
 
 // --------------------------------
 // 관리자 로그인
