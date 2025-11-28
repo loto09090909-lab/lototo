@@ -21,6 +21,25 @@ body {
 /* 숨김 */
 .hidden { display: none; }
 
+  .lotto-ball {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    margin-right: 6px;
+  }
+
+  .ball-yellow { background: #f2c400; }
+  .ball-blue   { background: #1e6bd6; }
+  .ball-red    { background: #d63f3f; }
+  .ball-gray   { background: #818181; }
+  .ball-green  { background: #3fa955; }
+
 /* 타이틀 */
 h2 {
   text-align: center;
