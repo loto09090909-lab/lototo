@@ -14,7 +14,32 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
+function normalize(nums) {
+  const used = new Set();
+  const fixed = [];
 
+  for (let n of nums) {
+    if (n < 1) n = 1;
+    if (n > 45) n = 45;
+
+    let val = n;
+    let tries = 0;
+
+    while (used.has(val) && tries < 50) {
+      if (val >= 45) val--;
+      else if (val <= 1) val++;
+      else val = (tries % 2 === 0) ? val + 1 : val - 1;
+      tries++;
+    }
+
+    while (used.has(val)) val = (val % 45) + 1;
+
+    used.add(val);
+    fixed.push(val);
+  }
+
+  return fixed.sort((a, b) => a - b);
+}
 async function adminLogin() {
   const code = document.getElementById("admin-code").value;
 
