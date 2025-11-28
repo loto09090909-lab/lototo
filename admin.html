@@ -25,6 +25,20 @@
   <pre id="test-result"></pre>
 </div>
 
+  <div class="container" id="security-section" style="margin-top:30px;">
+  <h2>사용자 접속 코드 변경</h2>
+
+  <input id="new-user-code" placeholder="새 사용자 입장 코드 입력" />
+
+  <button onclick="updateUserCode()">
+    사용자 코드 변경
+  </button>
+
+  <p style="text-align:center;color:#888;margin-top:10px;font-size:13px;">
+    ※ 관리자 코드(admin_code)는 보안을 위해 변경할 수 없습니다.
+  </p>
+</div>
+  
 <script src="ui.js"></script>
 <script src="app-admin.js"></script>
 </body>
