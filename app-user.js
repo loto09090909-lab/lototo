@@ -17,28 +17,20 @@ function normalize(nums) {
     let val = n;
     let tries = 0;
 
-    // 중복이면 ±1 반복 조정
     while (used.has(val) && tries < 50) {
-      if (val >= 45) {
-        val--;
-      } else if (val <= 1) {
-        val++;
-      } else {
-        val = (tries % 2 === 0) ? val + 1 : val - 1;
-      }
+      if (val >= 45) val--;
+      else if (val <= 1) val++;
+      else val = (tries % 2 === 0) ? val + 1 : val - 1;
       tries++;
     }
 
-    // 혹시 그래도 남아있으면 뒷 번호부터 순환
-    while (used.has(val)) {
-      val = (val % 45) + 1;
-    }
+    while (used.has(val)) val = (val % 45) + 1;
 
     used.add(val);
     fixed.push(val);
   }
 
-  return fixed;
+  return fixed.sort((a, b) => a - b);
 }
 // ======================================================
 
