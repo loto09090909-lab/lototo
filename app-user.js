@@ -122,18 +122,18 @@ function beginGenerate() {
 }
 async function generateNumbers() {
   const date = document.getElementById("date-select").value;
-  const [year, month, day] = date.split("-").map(Number);
+  const [y, m, d] = date.split("-").map(Number);
 
-  // 1) 음력 API 호출
+  // ===== 1) 음력 API 호출 =====
   const lunar = await fetch(`${WORKER_URL}/lunar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ year, month, day })
+    body: JSON.stringify({ year: y, month: m, day: d })
   }).then(r => r.json());
 
-  // 2) 날짜/음력/seed 출력 ==========================
-  const solarMonth = month;
-  const solarDay = day;
+  // ===== 2) seed(기준값) 표시 =====
+  const solarMonth = m;
+  const solarDay = d;
 
   const lunarMonth = lunar.lunar.m;
   const lunarDay = lunar.lunar.d;
@@ -145,39 +145,37 @@ async function generateNumbers() {
     선택 날짜: ${solarMonth}월 ${solarDay}일 (음 ${lunarMonth}월 ${lunarDay}일)<br>
     기준 값: ${seedString}
   `;
-  // =================================================
 
-// 번호 생성
-async function generateNumbers() {
-  const date = document.getElementById("date-select").value;
-  const [y, m, d] = date.split("-").map(Number);
+  // seed 구조화
+  const seed = {
+    solar: { y, m: solarMonth, d: solarDay },
+    lunar: { y, m: lunarMonth, d: lunarDay }
+  };
 
-  const lunar = await fetch(`${WORKER_URL}/lunar`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ year: y, month: m, day: d })
-  }).then(r => r.json());
-
-  const seed = { solar: { y, m, d }, lunar: lunar.lunar };
-  const algolist = await fetch(`${WORKER_URL}/algorithms`).then(r => r.json());
+  // ===== 3) 알고리즘 가져와 번호 생성 =====
+  const algolist = await fetch(`${WORKER_URL}/algorithms`)
+    .then(r => r.json());
 
   const box = document.getElementById("result-box");
   box.innerHTML = "";
 
   algolist.forEach(algo => {
-    const fn = new Function("seed", algo.code);
-    const nums = fn(seed);
+    try {
+      const fn = new Function("seed", algo.code);
+      const nums = fn(seed);
 
-    const div = document.createElement("div");
-    div.innerHTML = `<b>${algo.name}</b><br>${nums.join(", ")}`;
-    box.appendChild(div);
+      const div = document.createElement("div");
+      div.innerHTML = `<b>${algo.name}</b><br>${nums.join(", ")}`;
+      box.appendChild(div);
+
+    } catch (err) {
+      const div = document.createElement("div");
+      div.innerHTML = `<b>${algo.name}</b><br>ERROR: ${err}`;
+      box.appendChild(div);
+    }
   });
 
+  // ===== 4) 결과 화면으로 이동 =====
   hide("loading-view");
   show("result-view");
-}
-
-function goHome() {
-  hide("result-view");
-  show("main-view");
 }
