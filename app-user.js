@@ -79,7 +79,7 @@ function beginGenerate() {
   show("loading-view");
 
   // 30~120초 랜덤
-  remainingSeconds = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
+  remainingSeconds = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
   document.getElementById("loading-count").textContent = remainingSeconds;
 
   const totalMessages = LOADING_MESSAGES.length;
