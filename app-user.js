@@ -5,7 +5,10 @@
 // ⚠️ 반드시 본인 Worker URL로 교체하세요
 const WORKER_URL = "https://lotto-api.loto09090909.workers.dev";
 
-// 번호 중복 제거 정규화 함수 ===========================
+
+// ===========================================
+// 번호 중복 제거 + 오름차순 정렬 normalize()
+// ===========================================
 function normalize(nums) {
   const used = new Set();
   const fixed = [];
@@ -17,24 +20,30 @@ function normalize(nums) {
     let val = n;
     let tries = 0;
 
+    // 중복이면 ±1 반복 조정
     while (used.has(val) && tries < 50) {
       if (val >= 45) val--;
       else if (val <= 1) val++;
       else val = (tries % 2 === 0) ? val + 1 : val - 1;
+
       tries++;
     }
 
+    // 그래도 있으면 순환
     while (used.has(val)) val = (val % 45) + 1;
 
     used.add(val);
     fixed.push(val);
   }
 
+  // 오름차순 정렬
   return fixed.sort((a, b) => a - b);
 }
-// ======================================================
 
+
+// ================================
 // ENTER KEY SUPPORT
+// ================================
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("auth-input");
   if (input) {
@@ -46,7 +55,95 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sessionStorage.getItem("user-auth") === "yes") showMain();
 });
 
-// 분석 단계 메시지
+
+// ================================
+// 사용자 로그인
+// ================================
+async function userLogin() {
+  const code = document.getElementById("auth-input").value;
+
+  const res = await fetch(`${WORKER_URL}/auth/user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code })
+  }).then(r => r.json()).catch(() => ({ ok: false }));
+
+  if (!res.ok) return alert("보안코드가 올바르지 않습니다.");
+
+  sessionStorage.setItem("user-auth", "yes");
+  showMain();
+}
+
+function showMain() {
+  hide("auth-view");
+  loadSaturdays();
+  show("main-view");
+}
+
+
+// ================================
+// 미래 31일 내 토요일만 선택
+// ================================
+function loadSaturdays() {
+  const s = document.getElementById("date-select");
+  s.innerHTML = "";
+
+  const today = new Date();
+  for (let i = 0; i <= 31; i++) {
+    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
+
+    if (d.getDay() === 6) {
+      const opt = document.createElement("option");
+      opt.value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+      opt.textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (토)`;
+      s.appendChild(opt);
+    }
+  }
+}
+
+
+// =========================================================
+// 🔥 로딩 UX — 2초 프리로딩 + 그 후 실제 카운트/메세지 시작
+// =========================================================
+let countdownTimer = null;
+let messageTimer = null;
+let remainingSeconds = 0;
+
+function beginGenerate() {
+  hide("main-view");
+  show("loading-view");
+
+  const loadingText = document.getElementById("loading-text");
+  const loadingCount = document.getElementById("loading-count");
+
+  // 초기 고정 연출 (2초)
+  loadingText.innerText = "분석을 시작합니다...";
+  loadingCount.innerText = "";
+
+  setTimeout(() => {
+    loadingText.innerText = "분석 모델 초기화 중...";
+  }, 700);
+
+  setTimeout(() => {
+    loadingText.innerText = "환경 설정 로딩 중...";
+  }, 1400);
+
+  // 2초 후 실제 분석 시작
+  setTimeout(() => {
+    // 예측 시간: 28~118초
+    remainingSeconds = Math.floor(Math.random() * (118 - 28 + 1)) + 28;
+
+    loadingText.innerText = `분석 예상 시간: ${remainingSeconds}초`;
+    loadingCount.innerText = remainingSeconds;
+
+    startActualLoading();
+  }, 2000);
+}
+
+
+// =========================================================
+// 실제 Countdown + 알고리즘 메시지 순환
+// =========================================================
 const LOADING_MESSAGES = [
   "음력 기반 핵심 시드 생성 중…",
   "양력 → 음력 달력 정보 정밀 변환…",
@@ -61,60 +158,13 @@ const LOADING_MESSAGES = [
   "거의 완료되었습니다…"
 ];
 
-let countdownTimer = null;
-let messageTimer = null;
-let remainingSeconds = 0;
-
-async function userLogin() {
-  const code = document.getElementById("auth-input").value;
-  const res = await fetch(`${WORKER_URL}/auth/user`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code })
-  }).then(r => r.json()).catch(() => ({ ok: false }));
-
-  if (!res.ok) return alert("보안코드가 올바르지 않습니다.");
-  sessionStorage.setItem("user-auth", "yes");
-  showMain();
-}
-
-function showMain() {
-  hide("auth-view");
-  loadSaturdays();
-  show("main-view");
-}
-
-// 토요일 목록 생성
-function loadSaturdays() {
-  const s = document.getElementById("date-select");
-  s.innerHTML = "";
-  const today = new Date();
-  for (let i = 0; i <= 31; i++) {
-    const d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i);
-    if (d.getDay() === 6) {
-      const opt = document.createElement("option");
-      opt.value = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
-      opt.textContent = `${d.getFullYear()}년 ${d.getMonth()+1}월 ${d.getDate()}일 (토)`;
-      s.appendChild(opt);
-    }
-  }
-}
-
-// ==========================
-// 🔥 Premium Loading System
-// ==========================
-function beginGenerate() {
-  hide("main-view");
-  show("loading-view");
-
-  remainingSeconds = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
-  document.getElementById("loading-count").textContent = remainingSeconds;
-
+function startActualLoading() {
   const totalMessages = LOADING_MESSAGES.length;
   let messageIndex = 0;
 
   const intervalPerMessage = remainingSeconds / totalMessages;
 
+  // 메시지 순환
   messageTimer = setInterval(() => {
     const el = document.getElementById("loading-text");
     el.style.opacity = 0;
@@ -127,14 +177,13 @@ function beginGenerate() {
     messageIndex = Math.min(messageIndex + 1, totalMessages - 1);
   }, intervalPerMessage * 1000);
 
+  // 카운트다운
   countdownTimer = setInterval(() => {
-    remainingSeconds -= 1;
+    remainingSeconds--;
 
     const counterEl = document.getElementById("loading-count");
 
-    if (remainingSeconds <= 10) {
-      counterEl.style.color = "#d63f3f";
-    }
+    if (remainingSeconds <= 10) counterEl.style.color = "#d63f3f";
 
     counterEl.textContent = remainingSeconds;
 
@@ -147,32 +196,31 @@ function beginGenerate() {
 }
 
 
-// ==========================
-// 🔥 핵심 번호 생성 함수
-// ==========================
+
+// =========================================================
+// 🔥 최종 번호 생성 + 표시
+// =========================================================
 async function generateNumbers() {
   const date = document.getElementById("date-select").value;
   const [y, m, d] = date.split("-").map(Number);
 
-  // ===== 1) 음력 API 호출 =====
+  // 1) 음력 API
   const lunar = await fetch(`${WORKER_URL}/lunar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ year: y, month: m, day: d })
   }).then(r => r.json());
 
-  // ===== 2) 날짜/음력/seed 출력 =====
+  // 2) seed 정보 출력
   const solarMonth = m;
   const solarDay = d;
 
   const lunarMonth = lunar.lunar.m;
   const lunarDay = lunar.lunar.d;
 
-  const seedString = `${solarMonth}, ${solarDay}, ${lunarMonth}, ${lunarDay}`;
-
   document.getElementById("date-info").innerHTML = `
     선택 날짜: ${solarMonth}월 ${solarDay}일 (음 ${lunarMonth}월 ${lunarDay}일)<br>
-    기준 값: ${seedString}
+    기준 값: ${solarMonth}, ${solarDay}, ${lunarMonth}, ${lunarDay}
   `;
 
   const seed = {
@@ -180,19 +228,34 @@ async function generateNumbers() {
     lunar: { y, m: lunarMonth, d: lunarDay }
   };
 
-  // ===== 3) 알고리즘 호출 + normalize =====
+  // 3) 알고리즘 실행
   const algolist = await fetch(`${WORKER_URL}/algorithms`)
     .then(r => r.json());
 
   const box = document.getElementById("result-box");
   box.innerHTML = "";
 
+  // 번호 공 스타일 생성 함수
+  function makeBall(num) {
+    let cls = "ball-yellow";
+    if (num >= 10 && num < 20) cls = "ball-blue";
+    else if (num >= 20 && num < 30) cls = "ball-red";
+    else if (num >= 30 && num < 40) cls = "ball-gray";
+    else if (num >= 40) cls = "ball-green";
+
+    return `<span class="lotto-ball ${cls}">${num}</span>`;
+  }
+
   algolist.forEach(algo => {
     try {
       const fn = new Function("seed", "normalize", algo.code);
-      const nums = fn(seed, normalize);  // ← normalize 전달
+      const nums = fn(seed, normalize);
+
       const div = document.createElement("div");
-      div.innerHTML = `<b>${algo.name}</b><br>${nums.join(", ")}`;
+      div.innerHTML = `
+        <b>${algo.name}</b><br>
+        ${nums.map(n => makeBall(n)).join("")}
+      `;
       box.appendChild(div);
 
     } catch (err) {
@@ -202,14 +265,13 @@ async function generateNumbers() {
     }
   });
 
-  // ===== 4) 결과 화면으로 이동 =====
   hide("loading-view");
   show("result-view");
 }
 
 
 // ==========================
-// 다시 선택하기 버튼
+// 다시 선택하기
 // ==========================
 function goHome() {
   hide("result-view");
