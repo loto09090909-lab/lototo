@@ -70,3 +70,23 @@ async function applyAlgo() {
 
   alert(res.message || "적용 완료");
 }
+
+async function updateUserCode() {
+  const newCode = document.getElementById("new-user-code").value.trim();
+
+  if (!newCode) {
+    return alert("새로운 사용자 코드를 입력하세요.");
+  }
+
+  const res = await fetch(`${WORKER_URL}/security/update-user`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ newCode })
+  }).then(r => r.json());
+
+  if (res.error) {
+    alert("오류: " + res.error);
+  } else {
+    alert("사용자 코드가 성공적으로 변경되었습니다.");
+  }
+}
