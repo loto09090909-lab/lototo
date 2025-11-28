@@ -108,14 +108,14 @@ function beginGenerate() {
 
     loadingText.innerText = `분석 예상 시간: ${remainingSeconds}초`;
 
+
     loadingCount.style.display = "block";
-    loadingCount.innerText = remainingSeconds;
+    loadingCount.innerText = `남은 시간: ${remainingSeconds} 초`;
 
     startActualLoading();
 
   }, 2000);
 }
-
 
 const LOADING_MESSAGES = [
   "음력 기반 핵심 시드 생성 중…",
@@ -154,9 +154,11 @@ function startActualLoading() {
 
     const counterEl = document.getElementById("loading-count");
 
-    if (remainingSeconds <= 10) counterEl.style.color = "#d63f3f";
+    counterEl.textContent = `남은 시간: ${remainingSeconds} 초`;
 
-    counterEl.textContent = remainingSeconds;
+    if (remainingSeconds <= 10) {
+      counterEl.style.color = "#d63f3f";
+    }
 
     if (remainingSeconds <= 0) {
       clearInterval(countdownTimer);
