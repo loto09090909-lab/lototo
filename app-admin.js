@@ -44,14 +44,26 @@ async function testAlgo() {
     return alert("JSON 형식 오류입니다.");
   }
 
-  const res = await fetch(`${WORKER_URL}/algorithms/test`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(json)
-  }).then(r => r.json());
+  const seed = {
+    solar: { y: 2025, m: 11, d: 22 },
+    lunar: { y: 2025, m: 10, d: 3 }
+  };
+
+  const output = [];
+
+  for (const algo of json) {
+    try {
+      // 브라우저에서는 eval 가능
+      const fn = new Function("seed", algo.code);
+      const result = fn(seed);
+      output.push({ name: algo.name, result });
+    } catch (err) {
+      output.push({ name: algo.name, error: err.toString() });
+    }
+  }
 
   document.getElementById("test-result").textContent =
-    JSON.stringify(res, null, 2);
+    JSON.stringify({ ok: true, output }, null, 2);
 }
 
 async function applyAlgo() {
