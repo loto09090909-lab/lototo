@@ -120,6 +120,32 @@ function beginGenerate() {
     }
   }, 1000);
 }
+async function generateNumbers() {
+  const date = document.getElementById("date-select").value;
+  const [year, month, day] = date.split("-").map(Number);
+
+  // 1) 음력 API 호출
+  const lunar = await fetch(`${WORKER_URL}/lunar`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ year, month, day })
+  }).then(r => r.json());
+
+  // 2) 날짜/음력/seed 출력 ==========================
+  const solarMonth = month;
+  const solarDay = day;
+
+  const lunarMonth = lunar.lunar.m;
+  const lunarDay = lunar.lunar.d;
+
+  const seedString =
+    `${solarMonth}, ${solarDay}, ${lunarMonth}, ${lunarDay}`;
+
+  document.getElementById("date-info").innerHTML = `
+    선택 날짜: ${solarMonth}월 ${solarDay}일 (음 ${lunarMonth}월 ${lunarDay}일)<br>
+    기준 값: ${seedString}
+  `;
+  // =================================================
 
 // 번호 생성
 async function generateNumbers() {
