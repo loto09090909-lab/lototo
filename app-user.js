@@ -52,6 +52,35 @@ function loadSaturdays() {
   }
 }
 
+// ========== 카운트다운 기능 추가 ==========
+
+let countdownTimer = null;
+let remainingSeconds = 0;
+
+function beginGenerate() {
+  hide("main-view");
+  show("loading-view");
+
+  // 30초 ~ 120초 사이 랜덤 선택
+  remainingSeconds = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
+
+  // 첫 렌더링
+  document.getElementById("loading-count").textContent = remainingSeconds;
+
+  // 카운트다운 시작
+  countdownTimer = setInterval(() => {
+    remainingSeconds -= 1;
+    document.getElementById("loading-count").textContent = remainingSeconds;
+
+    if (remainingSeconds <= 0) {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      generateNumbers();
+    }
+  }, 1000);
+}
+
+
 // 번호 생성
 function beginGenerate() {
   hide("main-view");
@@ -88,9 +117,4 @@ async function generateNumbers() {
 
   hide("loading-view");
   show("result-view");
-}
-
-function goHome() {
-  hide("result-view");
-  show("main-view");
 }
