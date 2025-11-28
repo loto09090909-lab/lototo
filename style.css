@@ -1,0 +1,16 @@
+body {
+  font-family: sans-serif;
+  padding: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+#result-box > div {
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 18px;
+}
