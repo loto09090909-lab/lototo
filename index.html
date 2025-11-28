@@ -23,9 +23,21 @@
   <h2>번호 분석중…</h2>
   <div class="loading-spinner"></div>
 
-  <p style="text-align:center; font-size:16px; margin-top:12px;">
-    예상 완료까지 <b id="loading-count">--</b> 초 남음
+  <p style="text-align:center;font-size:16px;margin-top:12px;">
+    남은 시간: <b id="loading-count">--</b> 초
   </p>
+
+  <div id="loading-text" style="
+    margin-top:18px;
+    text-align:center;
+    font-size:15px;
+    color:#555;
+    line-height:1.5;
+    min-height:48px;
+    transition: opacity 0.3s ease;
+  ">
+    <!-- 단계별 메시지가 여기에 출력 -->
+  </div>
 </div>
 
 <div class="container hidden" id="result-view">
