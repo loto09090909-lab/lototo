@@ -78,14 +78,12 @@ function beginGenerate() {
   hide("main-view");
   show("loading-view");
 
-  // 30~120초 랜덤
-  remainingSeconds = Math.floor(Math.random() * (2 - 1 + 1)) + 1;
+  remainingSeconds = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
   document.getElementById("loading-count").textContent = remainingSeconds;
 
   const totalMessages = LOADING_MESSAGES.length;
   let messageIndex = 0;
 
-  // 메시지를 일정 간격으로 변경
   const intervalPerMessage = remainingSeconds / totalMessages;
 
   messageTimer = setInterval(() => {
