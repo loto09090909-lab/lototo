@@ -1,14 +1,5 @@
-// ================================
-// User App (Frontend)
-// ================================
-
-// ⚠️ 반드시 본인 Worker URL로 교체하세요
 const WORKER_URL = "https://lotto-api.loto09090909.workers.dev";
 
-
-// ===========================================
-// 번호 중복 제거 + 오름차순 정렬 normalize()
-// ===========================================
 function normalize(nums) {
   const used = new Set();
   const fixed = [];
@@ -20,7 +11,6 @@ function normalize(nums) {
     let val = n;
     let tries = 0;
 
-    // 중복이면 ±1 반복 조정
     while (used.has(val) && tries < 50) {
       if (val >= 45) val--;
       else if (val <= 1) val++;
@@ -29,21 +19,15 @@ function normalize(nums) {
       tries++;
     }
 
-    // 그래도 있으면 순환
     while (used.has(val)) val = (val % 45) + 1;
 
     used.add(val);
     fixed.push(val);
   }
 
-  // 오름차순 정렬
   return fixed.sort((a, b) => a - b);
 }
 
-
-// ================================
-// ENTER KEY SUPPORT
-// ================================
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("auth-input");
   if (input) {
@@ -56,9 +40,6 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ================================
-// 사용자 로그인
-// ================================
 async function userLogin() {
   const code = document.getElementById("auth-input").value;
 
@@ -81,9 +62,6 @@ function showMain() {
 }
 
 
-// ================================
-// 미래 31일 내 토요일만 선택
-// ================================
 function loadSaturdays() {
   const s = document.getElementById("date-select");
   s.innerHTML = "";
@@ -101,10 +79,6 @@ function loadSaturdays() {
   }
 }
 
-
-// =========================================================
-// 🔥 로딩 UX — 2초 프리로딩 + 그 후 실제 카운트/메세지 시작
-// =========================================================
 let countdownTimer = null;
 let messageTimer = null;
 let remainingSeconds = 0;
@@ -116,9 +90,10 @@ function beginGenerate() {
   const loadingText = document.getElementById("loading-text");
   const loadingCount = document.getElementById("loading-count");
 
-  // 초기 고정 연출 (2초)
-  loadingText.innerText = "분석을 시작합니다...";
+  loadingCount.style.display = "none";
   loadingCount.innerText = "";
+
+  loadingText.innerText = "분석을 시작합니다...";
 
   setTimeout(() => {
     loadingText.innerText = "분석 모델 초기화 중...";
@@ -128,22 +103,20 @@ function beginGenerate() {
     loadingText.innerText = "환경 설정 로딩 중...";
   }, 1400);
 
-  // 2초 후 실제 분석 시작
   setTimeout(() => {
-    // 예측 시간: 28~118초
     remainingSeconds = Math.floor(Math.random() * (118 - 28 + 1)) + 28;
 
     loadingText.innerText = `분석 예상 시간: ${remainingSeconds}초`;
+
+    loadingCount.style.display = "block";
     loadingCount.innerText = remainingSeconds;
 
     startActualLoading();
+
   }, 2000);
 }
 
 
-// =========================================================
-// 실제 Countdown + 알고리즘 메시지 순환
-// =========================================================
 const LOADING_MESSAGES = [
   "음력 기반 핵심 시드 생성 중…",
   "양력 → 음력 달력 정보 정밀 변환…",
@@ -164,7 +137,6 @@ function startActualLoading() {
 
   const intervalPerMessage = remainingSeconds / totalMessages;
 
-  // 메시지 순환
   messageTimer = setInterval(() => {
     const el = document.getElementById("loading-text");
     el.style.opacity = 0;
@@ -177,7 +149,6 @@ function startActualLoading() {
     messageIndex = Math.min(messageIndex + 1, totalMessages - 1);
   }, intervalPerMessage * 1000);
 
-  // 카운트다운
   countdownTimer = setInterval(() => {
     remainingSeconds--;
 
@@ -196,22 +167,16 @@ function startActualLoading() {
 }
 
 
-
-// =========================================================
-// 🔥 최종 번호 생성 + 표시
-// =========================================================
 async function generateNumbers() {
   const date = document.getElementById("date-select").value;
   const [y, m, d] = date.split("-").map(Number);
 
-  // 1) 음력 API
   const lunar = await fetch(`${WORKER_URL}/lunar`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ year: y, month: m, day: d })
   }).then(r => r.json());
 
-  // 2) seed 정보 출력
   const solarMonth = m;
   const solarDay = d;
 
@@ -228,14 +193,12 @@ async function generateNumbers() {
     lunar: { y, m: lunarMonth, d: lunarDay }
   };
 
-  // 3) 알고리즘 실행
   const algolist = await fetch(`${WORKER_URL}/algorithms`)
     .then(r => r.json());
 
   const box = document.getElementById("result-box");
   box.innerHTML = "";
 
-  // 번호 공 스타일 생성 함수
   function makeBall(num) {
     let cls = "ball-yellow";
     if (num >= 10 && num < 20) cls = "ball-blue";
@@ -269,10 +232,6 @@ async function generateNumbers() {
   show("result-view");
 }
 
-
-// ==========================
-// 다시 선택하기
-// ==========================
 function goHome() {
   hide("result-view");
   show("main-view");
