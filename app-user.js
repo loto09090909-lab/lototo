@@ -5,6 +5,43 @@
 // ⚠️ 반드시 본인 Worker URL로 교체하세요
 const WORKER_URL = "https://lotto-api.loto09090909.workers.dev";
 
+// 번호 중복 제거 정규화 함수 ===========================
+function normalize(nums) {
+  const used = new Set();
+  const fixed = [];
+
+  for (let n of nums) {
+    if (n < 1) n = 1;
+    if (n > 45) n = 45;
+
+    let val = n;
+    let tries = 0;
+
+    // 중복이면 ±1 반복 조정
+    while (used.has(val) && tries < 50) {
+      if (val >= 45) {
+        val--;
+      } else if (val <= 1) {
+        val++;
+      } else {
+        val = (tries % 2 === 0) ? val + 1 : val - 1;
+      }
+      tries++;
+    }
+
+    // 혹시 그래도 남아있으면 뒷 번호부터 순환
+    while (used.has(val)) {
+      val = (val % 45) + 1;
+    }
+
+    used.add(val);
+    fixed.push(val);
+  }
+
+  return fixed;
+}
+// ======================================================
+
 // ENTER KEY SUPPORT
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("auth-input");
@@ -98,13 +135,11 @@ function beginGenerate() {
     messageIndex = Math.min(messageIndex + 1, totalMessages - 1);
   }, intervalPerMessage * 1000);
 
-  // 1초 카운트다운
   countdownTimer = setInterval(() => {
     remainingSeconds -= 1;
 
     const counterEl = document.getElementById("loading-count");
 
-    // 10초 이하일 때 경고 색
     if (remainingSeconds <= 10) {
       counterEl.style.color = "#d63f3f";
     }
@@ -114,12 +149,15 @@ function beginGenerate() {
     if (remainingSeconds <= 0) {
       clearInterval(countdownTimer);
       clearInterval(messageTimer);
-      countdownTimer = null;
-      messageTimer = null;
       generateNumbers();
     }
   }, 1000);
 }
+
+
+// ==========================
+// 🔥 핵심 번호 생성 함수
+// ==========================
 async function generateNumbers() {
   const date = document.getElementById("date-select").value;
   const [y, m, d] = date.split("-").map(Number);
@@ -131,28 +169,26 @@ async function generateNumbers() {
     body: JSON.stringify({ year: y, month: m, day: d })
   }).then(r => r.json());
 
-  // ===== 2) seed(기준값) 표시 =====
+  // ===== 2) 날짜/음력/seed 출력 =====
   const solarMonth = m;
   const solarDay = d;
 
   const lunarMonth = lunar.lunar.m;
   const lunarDay = lunar.lunar.d;
 
-  const seedString =
-    `${solarMonth}, ${solarDay}, ${lunarMonth}, ${lunarDay}`;
+  const seedString = `${solarMonth}, ${solarDay}, ${lunarMonth}, ${lunarDay}`;
 
   document.getElementById("date-info").innerHTML = `
     선택 날짜: ${solarMonth}월 ${solarDay}일 (음 ${lunarMonth}월 ${lunarDay}일)<br>
     기준 값: ${seedString}
   `;
 
-  // seed 구조화
   const seed = {
     solar: { y, m: solarMonth, d: solarDay },
     lunar: { y, m: lunarMonth, d: lunarDay }
   };
 
-  // ===== 3) 알고리즘 가져와 번호 생성 =====
+  // ===== 3) 알고리즘 호출 + normalize =====
   const algolist = await fetch(`${WORKER_URL}/algorithms`)
     .then(r => r.json());
 
@@ -161,9 +197,8 @@ async function generateNumbers() {
 
   algolist.forEach(algo => {
     try {
-      const fn = new Function("seed", algo.code);
-      const nums = fn(seed);
-
+      const fn = new Function("seed", "normalize", algo.code);
+      const nums = fn(seed, normalize);  // ← normalize 전달
       const div = document.createElement("div");
       div.innerHTML = `<b>${algo.name}</b><br>${nums.join(", ")}`;
       box.appendChild(div);
@@ -178,4 +213,13 @@ async function generateNumbers() {
   // ===== 4) 결과 화면으로 이동 =====
   hide("loading-view");
   show("result-view");
+}
+
+
+// ==========================
+// 다시 선택하기 버튼
+// ==========================
+function goHome() {
+  hide("result-view");
+  show("main-view");
 }
