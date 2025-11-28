@@ -17,6 +17,25 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sessionStorage.getItem("user-auth") === "yes") showMain();
 });
 
+// 분석 단계 메시지
+const LOADING_MESSAGES = [
+  "음력 기반 핵심 시드 생성 중…",
+  "양력 → 음력 달력 정보 정밀 변환…",
+  "알고리즘 10개 병렬 로딩…",
+  "패턴 매칭 엔진 초기화…",
+  "과거 데이터 기반 확률 보정…",
+  "시드 기반 번호 군집화 계산…",
+  "번호 간 상관관계 분석 중…",
+  "기초 조합 생성…",
+  "중복 여부 및 규칙성 점검…",
+  "최종 검증 중…",
+  "거의 완료되었습니다…"
+];
+
+let countdownTimer = null;
+let messageTimer = null;
+let remainingSeconds = 0;
+
 async function userLogin() {
   const code = document.getElementById("auth-input").value;
   const res = await fetch(`${WORKER_URL}/auth/user`, {
@@ -36,7 +55,7 @@ function showMain() {
   show("main-view");
 }
 
-// 날짜 계산
+// 토요일 목록 생성
 function loadSaturdays() {
   const s = document.getElementById("date-select");
   s.innerHTML = "";
@@ -52,44 +71,59 @@ function loadSaturdays() {
   }
 }
 
-// ========== 카운트다운 기능 추가 ==========
-
-let countdownTimer = null;
-let remainingSeconds = 0;
-
+// ==========================
+// 🔥 Premium Loading System
+// ==========================
 function beginGenerate() {
   hide("main-view");
   show("loading-view");
 
-  // 30초 ~ 120초 사이 랜덤 선택
+  // 30~120초 랜덤
   remainingSeconds = Math.floor(Math.random() * (120 - 30 + 1)) + 30;
-
-  // 첫 렌더링
   document.getElementById("loading-count").textContent = remainingSeconds;
 
-  // 카운트다운 시작
+  const totalMessages = LOADING_MESSAGES.length;
+  let messageIndex = 0;
+
+  // 메시지를 일정 간격으로 변경
+  const intervalPerMessage = remainingSeconds / totalMessages;
+
+  messageTimer = setInterval(() => {
+    const el = document.getElementById("loading-text");
+    el.style.opacity = 0;
+
+    setTimeout(() => {
+      el.innerText = LOADING_MESSAGES[messageIndex];
+      el.style.opacity = 1;
+    }, 150);
+
+    messageIndex = Math.min(messageIndex + 1, totalMessages - 1);
+  }, intervalPerMessage * 1000);
+
+  // 1초 카운트다운
   countdownTimer = setInterval(() => {
     remainingSeconds -= 1;
-    document.getElementById("loading-count").textContent = remainingSeconds;
+
+    const counterEl = document.getElementById("loading-count");
+
+    // 10초 이하일 때 경고 색
+    if (remainingSeconds <= 10) {
+      counterEl.style.color = "#d63f3f";
+    }
+
+    counterEl.textContent = remainingSeconds;
 
     if (remainingSeconds <= 0) {
       clearInterval(countdownTimer);
+      clearInterval(messageTimer);
       countdownTimer = null;
+      messageTimer = null;
       generateNumbers();
     }
   }, 1000);
 }
 
-
 // 번호 생성
-function beginGenerate() {
-  hide("main-view");
-  show("loading-view");
-  const delay = Math.floor(Math.random() * 90000) + 30000;
-  setTimeout(generateNumbers, delay);
-}
-
-// Worker 호출
 async function generateNumbers() {
   const date = document.getElementById("date-select").value;
   const [y, m, d] = date.split("-").map(Number);
@@ -117,4 +151,9 @@ async function generateNumbers() {
 
   hide("loading-view");
   show("result-view");
+}
+
+function goHome() {
+  hide("result-view");
+  show("main-view");
 }
