@@ -44,8 +44,9 @@ async function testAlgo() {
     return alert("JSON 형식 오류입니다.");
   }
 
+  // seed 예시 — 관리자 테스트용 (고정값)
   const seed = {
-    solar: { y: 2025, m: 11, d: 22 },
+    solar: { y: 2025, m: 11, d: 23 },
     lunar: { y: 2025, m: 10, d: 3 }
   };
 
@@ -53,17 +54,16 @@ async function testAlgo() {
 
   for (const algo of json) {
     try {
-      // 브라우저에서는 eval 가능
-      const fn = new Function("seed", algo.code);
-      const result = fn(seed);
-      output.push({ name: algo.name, result });
+      const fn = new Function("seed", "normalize", algo.code);
+      const res = fn(seed, normalize);
+      output.push({ name: algo.name, numbers: res });
     } catch (err) {
       output.push({ name: algo.name, error: err.toString() });
     }
   }
 
   document.getElementById("test-result").textContent =
-    JSON.stringify({ ok: true, output }, null, 2);
+    JSON.stringify(output, null, 2);
 }
 
 async function applyAlgo() {
