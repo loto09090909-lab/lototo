@@ -3,7 +3,7 @@
 // ================================
 
 // ⚠️ 반드시 본인 Worker URL로 교체하세요
-const WORKER_URL = "https://lototo-454.pages.dev";
+const WORKER_URL = "https://loto09090909.workers.dev";
 
 // --------------------------------
 // 페이지 로드 시 인증 유지 체크
