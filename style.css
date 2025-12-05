@@ -7,6 +7,13 @@ body {
   color: #1a1a1a;
 }
 
+.plus-sign {
+  font-weight: bold;
+  font-size: 20px;
+  margin: 0 6px;
+  color: #444;
+}
+
 /* 중앙 정렬 */
 .container {
   max-width: 420px;
