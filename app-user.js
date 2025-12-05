@@ -216,10 +216,15 @@ async function generateNumbers() {
       const fn = new Function("seed", "normalize", algo.code);
       const nums = fn(seed, normalize);
 
+      const mainNums = normalize(nums.slice(0, 6)); // 앞의 6개만 정렬
+      const bonusNum = nums[6];
+
       const div = document.createElement("div");
       div.innerHTML = `
         <b>${algo.name}</b><br>
-        ${nums.map(n => makeBall(n)).join("")}
+        ${mainNums.map(n => makeBall(n)).join("")}
+        <span class="plus-sign"> + </span>
+        ${makeBall(bonusNum)}
       `;
       box.appendChild(div);
 
